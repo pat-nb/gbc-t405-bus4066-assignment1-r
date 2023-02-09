@@ -11,3 +11,7 @@ Group 5:
 3. Shine Chen
 4. Erika Valle
 5. David Minotas
+
+Credit Dataset: Kaggle - Insurance Claim Analysis: Demographic and Health
+- https://www.kaggle.com/datasets/thedevastator/insurance-claim-analysis-demographic-and-health?resource=download
+- https://data.world/sumitrock
