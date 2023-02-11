@@ -1,0 +1,224 @@
+---
+title: "Assignment 1 - Data Analysis and R Programming"
+output: pdf_document
+date: "2023-02-10"
+author: "Group 5 - Pat, Oat, Shine, Erika, David"
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyfoot[CO,CE]{Github Repository - https://github.com/pat-nb/gbc-t405-bus4066-assignment1-r.git}
+- \fancyfoot[RE,RO]{\thepage}
+- \fancypagestyle{plain}{\pagestyle{fancy}}
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Assignment 1 - Data Analysis and R Programming
+
+*Author: GBC T405 BUS4066 - Group 5*
+
+*1. Nichapat (Pat) Boonprasertsri, Student ID 101410612*
+
+*2. Chotiros (Oat) Srisiam, Student ID 101411914*
+
+*3. Shine Chen, Student ID 101450231*
+
+*4. Erika Valle, Student ID 101381686*
+
+*5. David Minotas, Student ID 101409821*
+
+***Please import insurance_data.csv before run all code below***
+
+```{r - import csv file or run this code to read csv file}
+insurance_data <- read.csv("https://raw.githubusercontent.com/pat-nb/gbc-t405-bus4066-assignment1-r/main/insurance_data.csv")
+```
+
+## Data Preprocessing
+
+### Print the structure of dataset
+
+```{r - print the structure of insurance_data}
+str(insurance_data)
+```
+
+### List the variables in dataset
+
+```{r - list the variables in insurance_data}
+names(insurance_data)
+```
+
+### Print the top 15 rows of dataset
+
+```{r - print the top 15 rows of insurance_data}
+head(insurance_data, n=15)
+```
+
+### Write a user defined function using any of the variables from the data set
+
+```{r - create function for calculating year of birth from provided age}
+cal_yob <- function(age) {
+  2021 - age # assume that 2021 is the year that data is created
+}
+print(head(cal_yob(insurance_data$age), n = 20))
+```
+
+### Use data manipulation techniques and filter rows based on any logical criteria that exist in dataset
+
+```{r - filter patients that age equal to or less than 30 and are diabetic)}
+# Attach tidyverse packages to use data manipulation, reading, transforming and visualizing datasets
+library("tidyverse")
+# Select first 10 rows
+insurance_data %>%
+  select(age, bmi, diabetic, claim) %>%
+  filter(age <= 30, diabetic == "Yes") %>%
+  slice_head(n = 10)
+```
+
+### Identify the dependent & independent variables and use reshaping techniques and create a new data frame by joining those variables from dataset
+
+```{r - use reshaping techniques and create a new data frame by joining variables}
+# Create a new data frame with smoker and diabetic column
+reshap_col_smoker_diab <- cbind(insurance_data$smoker, insurance_data$diabetic)
+print(head(reshap_col_smoker_diab, n = 10))
+
+# Find and store patients whose age is under 20
+df_age_under_20 <- insurance_data %>%
+                select(PatientID, age, bmi, diabetic, claim) %>%
+                filter(age < 20) %>%
+                arrange(age, by_group = TRUE)
+
+# Find and store patients whose age is from 20 to 30
+df_age_20_30 <- insurance_data %>%
+              select(PatientID, age, bmi, diabetic, claim) %>%
+              filter(age >= 20, age < 30) %>%
+              arrange(age, by_group = TRUE)
+
+# Create a new data frame with patients whose age under 30 by merging 2 prepared data frame
+df_age_under_30 <- rbind(df_age_under_20, df_age_20_30)
+print(head(df_age_under_30, n = 10))
+```
+
+### Remove missing values in dataset.
+
+```{r - remove records which age are missing}
+insurance_data %>% 
+  select(2:5, 11) %>%
+  filter(!is.na(age)) %>%
+  slice_head(n = 10)
+```
+
+### Identify and remove duplicated data in dataset
+
+```{r - identify and remove duplicated in insurance_data}
+# Identify duplicated data
+insurance_data[duplicated(insurance_data)]
+
+# Remove duplicated rows in a data frame
+insurance_data %>% 
+  select(2:5, 11) %>%
+  distinct() %>%
+  slice_head(n = 10)
+
+# Remove duplicated rows based on age
+insurance_data %>%
+  select(2:5, 11) %>%
+  distinct(age)
+```
+
+### Reorder multiple rows in descending order
+
+```{r - reorder age and claim in descending order}
+insurance_data %>%
+  select(2:5, 11) %>%
+  arrange(-age, -claim) %>%
+  slice_head(n = 10)
+```
+
+### Rename some of the column names in dataset
+
+```{r - rename PatientID}
+insurance_data %>% 
+  select(2:5, 11) %>%
+  rename(patient_id=PatientID) %>%
+  slice_head(n = 10)
+```
+
+### Add new variables in data frame by using a mathematical function
+
+```{r - create new variables or column which is year of birth that calculate from age}
+insurance_data %>% 
+  filter(!is.na(age)) %>%
+  mutate(yob = 2021 - age) %>%
+  slice_head(n = 10)
+```
+
+### Create a training set using random number generator engine
+
+```{r - random select 5% of records}
+# Total number of data
+count(insurance_data)
+# Number of selected 5% data
+count(insurance_data) * 0.05
+
+# Random select 5% of records
+set.seed(1234)
+insurance_data %>%
+  sample_frac(0.05, replace = FALSE)
+```
+
+### Print the summary statistics of dataset
+
+```{r - find mean claim of each age}
+insurance_data %>% 
+  group_by(age) %>%
+  summarise(mean(claim)) %>%
+  slice_head(n = 10)
+```
+
+### Use any of the numerical variables from the dataset and perform the following statistical functions: Mean, Median, Mode, Range
+
+```{r - perform statistical functions}
+# Find mean of claim
+cat("Mean claim = ", as.character(mean(insurance_data$claim)))
+# Find median of claim
+cat("Median claim = ", median(insurance_data$claim))
+# Find mode of age
+cal_mode <- function(v) {
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+cat("Mode age = ", cal_mode(insurance_data$age))
+# Find range of claim
+cat("Range claim = ",(range(insurance_data$claim)))
+```
+
+## Visualization
+
+### Plot a scatter plot for any 2 variables in dataset
+
+```{r - plot a scatter plot for bmi and claim}
+ggplot(data = insurance_data,
+       mapping = aes(x=bmi,
+                     y=claim)) +
+  geom_point()
+```
+
+### Plot a bar plot for any 2 variables in dataset
+
+```{r - plot a bar plot for age and smoker factor}
+ggplot(data = insurance_data,
+       aes(x = age, fill = factor(smoker))) +
+  geom_bar()
+```
+
+## Correlation
+
+### Find the correlation between any 2 variables by applying least square linear regression model
+
+```{r - find the correlation between claim and bmi}
+corr_bmi_claim = cor(insurance_data$claim, insurance_data$bmi, method="pearson")
+print(corr_bmi_claim)
+```
